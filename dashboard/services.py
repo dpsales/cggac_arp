@@ -4,6 +4,7 @@ import os
 def get_databricks_data():
     try:
         from databricks import sql
+        from databricks.sql.exc import Error as DatabricksError
     except ImportError:
         return [], [], "Dependência 'databricks-sql-connector' não instalada."
 
@@ -25,5 +26,5 @@ def get_databricks_data():
                 columns = [column[0] for column in cursor.description or []]
                 rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
         return columns, rows, None
-    except Exception as error:  # pragma: no cover
-        return [], [], f"Erro ao consultar o Databricks: {error}"
+    except DatabricksError:  # pragma: no cover
+        return [], [], "Erro ao consultar o Databricks."
