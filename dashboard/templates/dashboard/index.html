@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Dashboard Databricks</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f3f3f3; }
+        .error { color: #b00020; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard de dados (Databricks)</h1>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% elif rows %}
+        <table>
+            <thead>
+            <tr>
+                {% for column in columns %}
+                    <th>{{ column }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+                <tr>
+                    {% for value in row.values %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Nenhum dado retornado pela query.</p>
+    {% endif %}
+</body>
+</html>

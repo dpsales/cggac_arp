@@ -1,0 +1,2 @@
+Django==5.2.13
+databricks-sql-connector==3.2.0
