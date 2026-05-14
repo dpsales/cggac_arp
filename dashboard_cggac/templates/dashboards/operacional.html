@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% load formatacao %}
+{% load static %}
+{% block title %}Visao Operacional - ARP{% endblock %}
+{% block nav_oper %}active{% endblock %}
+{% block tab_oper %}active{% endblock %}
+{% block page_title %}Visão Operacional{% endblock %}
+
+{% block content %}
+<div class="pbi-page-header d-flex align-items-start justify-content-between flex-wrap gap-2">
+  <div>
+    <h5><i class="bi bi-list-task me-2"></i>{{ titulo }}</h5>
+    <small>{{ subtitulo }}</small>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" href="#painelFiltros">
+    <i class="bi bi-funnel me-1"></i>Filtros
+  </a>
+</div>
+
+<div class="collapse show mb-3" id="painelFiltros">
+  <div class="card card-body py-2 filter-card">
+    <form id="formFiltros" class="row g-2 align-items-end">
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Ano</label>
+        <select name="ano" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="2023" {% if get.ano == '2023' %}selected{% endif %}>2023</option>
+          <option value="2024" {% if get.ano == '2024' %}selected{% endif %}>2024</option>
+          <option value="2025" {% if get.ano == '2025' %}selected{% endif %}>2025</option>
+          <option value="2026" {% if get.ano == '2026' %}selected{% endif %}>2026</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Carona</label>
+        <select name="carona" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="1" {% if get.carona == '1' %}selected{% endif %}>Sim</option>
+          <option value="0" {% if get.carona == '0' %}selected{% endif %}>Nao</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">UASG</label>
+        <select name="uasg" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          {% for u in filtros.uasgs %}
+          <option value="{{ u }}" {% if get.uasg == u|stringformat:"s" %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Vigencia</label>
+        <select name="vigencia" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          <option value="vigente" {% if get.vigencia == 'vigente' %}selected{% endif %}>Vigente</option>
+          <option value="vencida" {% if get.vigencia == 'vencida' %}selected{% endif %}>Vencida</option>
+          <option value="expira_30" {% if get.vigencia == 'expira_30' %}selected{% endif %}>Expira em 30 dias</option>
+          <option value="sem_vigencia" {% if get.vigencia == 'sem_vigencia' %}selected{% endif %}>Sem vigencia</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Fornecedor</label>
+        <select name="fornecedor" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          {% for f in filtros.fornecedores %}
+          <option value="{{ f }}" {% if get.fornecedor == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2 d-flex gap-1">
+        <button type="submit" class="btn btn-sm btn-primary w-100">Aplicar</button>
+        <a href="{% url 'dashboards:operacional' %}" class="btn btn-sm btn-outline-secondary">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="active-filters-wrap mb-3" id="filtrosAtivosWrap">
+  <span class="active-filters-title"><i class="bi bi-funnel-fill me-1"></i>Filtros ativos:</span>
+  <div class="active-filters-list" id="filtrosAtivosBadges"></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><div class="card kpi-card kpi-card-danger"><div class="card-body"><div class="kpi-label">Atas vencidas (top 20)</div><div class="h4 mb-0 text-danger" id="alertasVencidas">{{ alertas.vencidas_total }}</div></div></div></div>
+  <div class="col-md-4"><div class="card kpi-card kpi-card-warn"><div class="card-body"><div class="kpi-label">Registros sem vigencia</div><div class="h4 mb-0 text-warning" id="alertasSemVigencia">{{ alertas.sem_vigencia }}</div></div></div></div>
+  <div class="col-md-4"><div class="card kpi-card kpi-card-primary"><div class="card-body"><div class="kpi-label">Sem fornecedor</div><div class="h4 mb-0" id="alertasSemFornecedor">{{ alertas.sem_fornecedor }}</div></div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">UASG Origem - volume e percentual carona</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" id="tabelaUASG">
+          <thead><tr><th>UASG</th><th class="text-end">Reg.</th><th class="text-end">Carona</th><th class="text-end">% Carona</th></tr></thead>
+          <tbody>
+          {% for u in por_uasg %}
+          <tr>
+            <td>{{ u.cod_id_uasg_origem_compra }}</td>
+            <td class="text-end">{{ u.total }}</td>
+            <td class="text-end">{{ u.carona }}</td>
+            <td class="text-end">{{ u.pct_carona }}%</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted">Sem dados</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">Top fornecedores por itens</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" id="tabelaFornecedores">
+          <thead><tr><th>Fornecedor</th><th class="text-end">Itens</th><th class="text-end">Valor Total</th></tr></thead>
+          <tbody>
+          {% for f in por_fornecedor %}
+          <tr>
+            <td>{{ f.num_cpf_cnpj_fornecedor }}</td>
+            <td class="text-end">{{ f.total }}</td>
+            <td class="text-end">R$ {{ f.valor_negociado|moeda_br }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-center text-muted">Sem dados</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">Proximas a vencer</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0" id="tabelaProximas">
+          <thead><tr><th>PNCP</th><th>ARP</th><th>Descricao detalhada do item</th><th>Vigencia final</th><th class="text-end">Dias</th></tr></thead>
+          <tbody>
+          {% for a in proximas_vencer %}
+          <tr>
+            <td class="small">{{ a.num_controle_pncp }}</td>
+            <td>{{ a.num_arp }}/{{ a.num_ano }}</td>
+            <td class="small">{{ a.dsc_detalhada|default:"-"|truncatechars:120 }}</td>
+            <td>{{ a.dth_vigencia_final_arp|date:"d/m/Y" }}</td>
+            <td class="text-end">{{ a.dias_restantes }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted">Sem dados</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">Atas vencidas (mais recentes)</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0" id="tabelaVencidas">
+          <thead><tr><th>PNCP</th><th>ARP</th><th>Descricao detalhada do item</th><th>Vencimento</th><th class="text-end">Dias apos</th></tr></thead>
+          <tbody>
+          {% for a in vencidas %}
+          <tr>
+            <td class="small">{{ a.num_controle_pncp }}</td>
+            <td>{{ a.num_arp }}/{{ a.num_ano }}</td>
+            <td class="small">{{ a.dsc_detalhada|default:"-"|truncatechars:120 }}</td>
+            <td>{{ a.dth_vigencia_final_arp|date:"d/m/Y" }}</td>
+            <td class="text-end text-danger">{{ a.dias_apos_vencimento }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted">Sem dados</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card analytics-card">
+  <div class="card-header">Objetos de ARP mais recorrentes</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0" id="tabelaObjetos">
+      <thead><tr><th>Objeto</th><th class="text-end">Ocorrencias</th></tr></thead>
+      <tbody>
+      {% for o in top_objetos %}
+      <tr>
+        <td class="small">{{ o.dsc_objeto_arp|truncatechars:180 }}</td>
+        <td class="text-end">{{ o.total }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2" class="text-center text-muted">Sem dados</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboards/filtros-dinamicos.js' %}"></script>
+<script>
+// Inicializar dashboard com filtros dinâmicos
+const dashboard = new OperacionalDashboard('/api/operacional/', {});
+</script>
+{% endblock %}

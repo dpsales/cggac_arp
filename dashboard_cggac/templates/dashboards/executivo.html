@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load formatacao %}
+{% load static %}
+{% block title %}Visao Executiva - ARP{% endblock %}
+{% block nav_exec %}active{% endblock %}
+{% block tab_exec %}active{% endblock %}
+{% block page_title %}Visão Executiva{% endblock %}
+
+{% block content %}
+<div class="pbi-page-header d-flex align-items-start justify-content-between flex-wrap gap-2">
+  <div>
+    <h5><i class="bi bi-speedometer2 me-2"></i>{{ titulo }}</h5>
+    <small>{{ subtitulo }}</small>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" href="#painelFiltros">
+    <i class="bi bi-funnel me-1"></i>Filtros
+  </a>
+</div>
+
+<div class="collapse show mb-3" id="painelFiltros">
+  <div class="card card-body py-2 filter-card">
+    <form id="formFiltros" class="row g-2 align-items-end">
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Ano</label>
+        <select name="ano" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="2023" {% if get.ano == '2023' %}selected{% endif %}>2023</option>
+          <option value="2024" {% if get.ano == '2024' %}selected{% endif %}>2024</option>
+          <option value="2025" {% if get.ano == '2025' %}selected{% endif %}>2025</option>
+          <option value="2026" {% if get.ano == '2026' %}selected{% endif %}>2026</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Carona</label>
+        <select name="carona" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="1" {% if get.carona == '1' %}selected{% endif %}>Sim</option>
+          <option value="0" {% if get.carona == '0' %}selected{% endif %}>Nao</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">UASG</label>
+        <select name="uasg" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          {% for u in filtros.uasgs %}
+          <option value="{{ u }}" {% if get.uasg == u|stringformat:"s" %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Vigencia</label>
+        <select name="vigencia" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          <option value="vigente" {% if get.vigencia == 'vigente' %}selected{% endif %}>Vigente</option>
+          <option value="vencida" {% if get.vigencia == 'vencida' %}selected{% endif %}>Vencida</option>
+          <option value="expira_30" {% if get.vigencia == 'expira_30' %}selected{% endif %}>Expira em 30 dias</option>
+          <option value="sem_vigencia" {% if get.vigencia == 'sem_vigencia' %}selected{% endif %}>Sem vigencia</option>
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Fornecedor</label>
+        <select name="fornecedor" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          {% for f in filtros.fornecedores %}
+          <option value="{{ f }}" {% if get.fornecedor == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2 d-flex gap-1">
+        <button type="submit" class="btn btn-sm btn-primary w-100">Aplicar</button>
+        <a href="/" class="btn btn-sm btn-outline-secondary">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="active-filters-wrap mb-3" id="filtrosAtivosWrap">
+  <span class="active-filters-title"><i class="bi bi-funnel-fill me-1"></i>Filtros ativos:</span>
+  <div class="active-filters-list" id="filtrosAtivosBadges"></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-primary"><div class="card-body"><div class="kpi-label">Registros</div><div class="h4 mb-0" id="kpiTotalRegistros">{{ kpis.total_registros }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-info"><div class="card-body"><div class="kpi-label">Atas Distintas</div><div class="h4 mb-0" id="kpiAtasDistintas">{{ kpis.atas_distintas }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-success"><div class="card-body"><div class="kpi-label">Atas Vigentes</div><div class="h4 mb-0 text-success" id="kpiVigentes">{{ kpis.vigentes }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-danger"><div class="card-body"><div class="kpi-label">Atas Vencidas</div><div class="h4 mb-0 text-danger" id="kpiVencidas">{{ kpis.vencidas }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-warn"><div class="card-body"><div class="kpi-label">Expiram em 30 dias</div><div class="h4 mb-0 text-warning" id="kpiExpiram30">{{ kpis.expiram_30 }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-primary"><div class="card-body"><div class="kpi-label">Atas com Carona</div><div class="h4 mb-0" id="kpiCaronaAtas">{{ kpis.carona_atas }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-info"><div class="card-body"><div class="kpi-label">Valor Total</div><div class="h4 mb-0" id="kpiValorTotal">R$ {{ kpis.valor_total|moeda_br }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card kpi-card-info"><div class="card-body"><div class="kpi-label">Valor Medio</div><div class="h4 mb-0" id="kpiValorMedio">R$ {{ kpis.valor_medio|moeda_br }}</div></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">Status de Vigencia</div>
+      <div class="card-body"><canvas id="chartStatus"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">Atas por Ano</div>
+      <div class="card-body"><canvas id="chartAno"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 analytics-card">
+      <div class="card-header">Top UASG Origem</div>
+      <div class="card-body"><canvas id="chartUasg"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-3 analytics-card">
+  <div class="card-header">Top Fornecedores (por itens)</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0" id="tabelaFornecedores">
+      <thead><tr><th>Fornecedor</th><th class="text-end">Itens</th><th class="text-end">Valor Negociado</th></tr></thead>
+      <tbody>
+      {% for f in por_fornecedor %}
+      <tr>
+        <td>{{ f.num_cpf_cnpj_fornecedor }}</td>
+        <td class="text-end">{{ f.total }}</td>
+        <td class="text-end">R$ {{ f.valor|moeda_br }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" class="text-center text-muted">Sem dados</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboards/filtros-dinamicos.js' %}"></script>
+<script>
+let chartStatus, chartAno, chartUasg;
+
+chartStatus = new Chart(document.getElementById('chartStatus'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Vigentes', 'Expiram em 30 dias', 'Vencidas'],
+    datasets: [{ data: [{{ status_vigencia.vigentes }}, {{ status_vigencia.expiram_30 }}, {{ status_vigencia.vencidas }}], backgroundColor: ['#198754','#ffc107','#dc3545'] }]
+  }
+});
+
+chartAno = new Chart(document.getElementById('chartAno'), {
+  type: 'bar',
+  data: {
+    labels: [{% for a in por_ano %}'{{ a.num_ano }}',{% endfor %}],
+    datasets: [{ label: 'Atas', data: [{% for a in por_ano %}{{ a.atas }},{% endfor %}], backgroundColor:'#0d6efd' }]
+  }
+});
+
+chartUasg = new Chart(document.getElementById('chartUasg'), {
+  type: 'bar',
+  data: {
+    labels: [{% for u in por_uasg %}'{{ u.cod_id_uasg_origem_compra }}',{% endfor %}],
+    datasets: [{ label: 'Registros', data: [{% for u in por_uasg %}{{ u.total }},{% endfor %}], backgroundColor:'#6610f2' }]
+  },
+  options: { indexAxis: 'y' }
+});
+
+// Inicializar dashboard com filtros dinâmicos
+const dashboard = new ExecutivoDashboard('/api/executivo/', { chartStatus, chartAno, chartUasg });
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+[Unit]
+Description=Gunicorn — Dashboard CGGAC/SEGES Ouvidoria
+After=network.target
+
+[Service]
+User=daianasales
+Group=www-data
+WorkingDirectory=/home/daianasales/vscode/datapipeline/dashboard_cggac
+# Ative o venv conforme o caminho real do seu ambiente
+ExecStart=/home/daianasales/vscode/datapipeline/.venv/bin/gunicorn \
+          config.wsgi:application \
+          --bind unix:/run/dashboard_cggac.sock \
+          --workers 3 \
+          --timeout 60 \
+          --access-logfile /var/log/dashboard_cggac/access.log \
+          --error-logfile /var/log/dashboard_cggac/error.log
+Restart=always
+RestartSec=5
+EnvironmentFile=/home/daianasales/vscode/datapipeline/dashboard_cggac/.env
+
+[Install]
+WantedBy=multi-user.target

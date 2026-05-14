@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load formatacao %}
+{% block title %}Solicitacoes por Item{% endblock %}
+{% block nav_solic %}active{% endblock %}
+{% block tab_solic %}active{% endblock %}
+{% block page_title %}Solicitacoes por Item{% endblock %}
+
+{% block content %}
+<div class="pbi-page-header d-flex align-items-start justify-content-between flex-wrap gap-2">
+  <div>
+    <h5><i class="bi bi-card-list me-2"></i>{{ titulo }}</h5>
+    <small>{{ subtitulo }}</small>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" href="#painelFiltros">
+    <i class="bi bi-funnel me-1"></i>Filtros
+  </a>
+</div>
+
+<div class="collapse show mb-3" id="painelFiltros">
+  <div class="card card-body py-2 filter-card">
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-sm-3">
+        <label class="form-label small mb-1">Orgão Solicitante</label>
+        <select name="nom_uasg_resumido" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          {% for u in filtros_solicitacoes.uasgs %}
+          <option value="{{ u }}" {% if get.nom_uasg_resumido == u %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Esfera</label>
+        <select name="esfera" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          {% for e in filtros_solicitacoes.esferas %}
+          <option value="{{ e }}" {% if get.esfera == e %}selected{% endif %}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-2">
+        <label class="form-label small mb-1">Poder</label>
+        <select name="poder" class="form-select form-select-sm">
+          <option value="">Todas</option>
+          {% for p in filtros_solicitacoes.poderes %}
+          <option value="{{ p }}" {% if get.poder == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label small mb-1">Busca (descricao ou UASG)</label>
+        <input type="text" name="q" class="form-control form-control-sm" value="{{ get.q|default:'' }}" placeholder="Ex.: hospital, processador...">
+      </div>
+      <div class="col-sm-2 d-flex gap-1">
+        <button type="submit" class="btn btn-sm btn-primary w-100">Aplicar</button>
+        <a href="{% url 'dashboards:solicitacoes_item' %}" class="btn btn-sm btn-outline-secondary">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card analytics-card mt-3">
+  <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span>Dados complementares do dados_cggac(2).xlsx</span>
+    <small class="text-muted">
+      Mostrando {{ solicitacoes_resultado_start_index }}-{{ solicitacoes_resultado_end_index }}
+      de {{ solicitacoes_resultado_total }} registros filtrados
+    </small>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Descrição</th>
+          <th>UASG (Código)</th>
+          {% comment %} <th>NOM_UASG</th> {% endcomment %}
+          <th>UASG (Nome)</th>
+          <th class="text-end">Qtd. Solicitada</th>
+          <th class="text-end">Qtd. Aprovada</th>
+          <th class="text-end">Valor Unitário</th>
+          <th class="text-end">Qtd. Máx. Adesão</th>
+          <th>Esfera</th>
+          <th>Poder</th>
+          <th>Município</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in solicitacoes_resultado %}
+        <tr>
+          <td class="small">{{ r.srk_compra_item|default:'-' }}</td>
+          <td class="small">{{ r.dsc_detalhada|default:'-'|truncatechars:80 }}</td>
+          <td class="small">{{ r.srk_uasg_solicitacao|default:'-' }}</td>
+          {% comment %} <td class="small">{{ r.nom_uasg|default:'-' }}</td> {% endcomment %}
+          <td>{{ r.nom_uasg_resumido|default:'-' }}</td>
+          <td class="small">{{ r.qtd_solicitada|default:'-' }}</td>
+          <td class="small">{{ r.qtd_aprovada|default:'-' }}</td>
+          <td class="small">R$ {{ r.vlr_unitario_fornecedor|moeda_br }}</td>
+          <td class="small">{{ r.qtd_maximo_adesao_compra_item|default:'-' }}</td>
+          <td>{{ r.nom_esfera|default:'-' }}</td>
+          <td>{{ r.nom_poder|default:'-' }}</td>
+          <td class="small">{{ r.cod_id_municipio|default:'-' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="13" class="text-center text-muted">Sem dados carregados do arquivo 2</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <small class="text-muted">Pagina {{ solicitacoes_resultado_page }} de {{ solicitacoes_resultado_total_pages }}</small>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="btn-group btn-group-sm" role="group" aria-label="Paginacao dados_cggac_2_numerica">
+        {% for p in solicitacoes_resultado_page_links %}
+          {% if p.is_current %}
+          <button class="btn btn-primary" disabled>{{ p.num }}</button>
+          {% else %}
+          <a class="btn btn-outline-primary" href="?{{ p.qs }}">{{ p.num }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="btn-group btn-group-sm" role="group" aria-label="Paginacao dados_cggac_2">
+      {% if solicitacoes_resultado_has_previous %}
+      <a class="btn btn-outline-secondary" href="?{{ solicitacoes_resultado_prev_qs }}">Anterior</a>
+      {% else %}
+      <button class="btn btn-outline-secondary" disabled>Anterior</button>
+      {% endif %}
+
+      {% if solicitacoes_resultado_has_next %}
+      <a class="btn btn-outline-secondary" href="?{{ solicitacoes_resultado_next_qs }}">Proxima</a>
+      {% else %}
+      <button class="btn btn-outline-secondary" disabled>Proxima</button>
+      {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
