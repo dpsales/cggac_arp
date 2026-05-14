@@ -1,2 +1,2 @@
 # cggac_arp
-codigo_para exploração dos dados das ARP ár aalimentar paineis
+codigo_para exploração dos dados das ARP para alimentar painel
